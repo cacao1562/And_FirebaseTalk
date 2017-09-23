@@ -1,0 +1,62 @@
+{
+  "project_info": {
+    "project_number": "707027743774",
+    "firebase_url": "https://talk-23ac6.firebaseio.com",
+    "project_id": "talk-23ac6",
+    "storage_bucket": "talk-23ac6.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:707027743774:android:756cb1058bf3e795",
+        "android_client_info": {
+          "package_name": "com.talk.hwanungyu.and_firebasetalk"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "707027743774-i62g0ad97nr687mhp0nqf2msjr6s265v.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.talk.hwanungyu.and_firebasetalk",
+            "certificate_hash": "5de2d25dbc71333653363d3482f282ec9336ce78"
+          }
+        },
+        {
+          "client_id": "707027743774-bcbqcgkmrm8sq5sr7t5kcd28sm9kd4h4.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBzrEv2KW4KSjTRzasCyFW-Jr_cKARCF9I"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "707027743774-pgglgibrbt5pogk0d4ugrgh82m3be4na.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "Test.FireBaseTalk"
+              }
+            },
+            {
+              "client_id": "707027743774-bcbqcgkmrm8sq5sr7t5kcd28sm9kd4h4.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
