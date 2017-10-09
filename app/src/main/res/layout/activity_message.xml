@@ -5,7 +5,17 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="com.talk.hwanungyu.and_firebasetalk.chat.MessageActivity">
-    
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/messageActivity_recyclerView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/messageActivity_button"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"></android.support.v7.widget.RecyclerView>
     <EditText
         android:layout_toLeftOf="@+id/messageActivity_button"
         android:layout_alignParentBottom="true"

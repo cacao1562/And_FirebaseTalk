@@ -16,6 +16,7 @@ import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.FirebaseDatabase;
@@ -52,13 +53,19 @@ public class Peoplefragment extends Fragment {
 
         public PeopleFragmentRecyclerViewAdapter() {
             userModels = new ArrayList<>();
+            final String myUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
             FirebaseDatabase.getInstance().getReference().child("users").addValueEventListener(new ValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
 
                     userModels.clear(); //중복 제거
                     for(DataSnapshot snapshot :dataSnapshot.getChildren()){
-                        userModels.add(snapshot.getValue(UserModel.class));
+
+                        UserModel userModel = snapshot.getValue(UserModel.class);
+                        if(userModel.uid.equals(myUid)) {
+                            continue;
+                        }
+                        userModels.add(userModel);
                     }
                     notifyDataSetChanged(); //새로고침
                 }
