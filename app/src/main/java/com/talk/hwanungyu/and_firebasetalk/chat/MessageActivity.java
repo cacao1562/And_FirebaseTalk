@@ -164,7 +164,7 @@ public class MessageActivity extends AppCompatActivity {
                 messageViewHolder.linearLayout_destination.setVisibility(View.INVISIBLE); //감추기
                 messageViewHolder.textView_message.setTextSize(25);
             } else {
-                Glide.with(holder.itemView.getContext())
+                Glide.with(holder.itemView.getContext()) //상대방
                         .load(userModel.profileImageUrl)
                         .apply(new RequestOptions().circleCrop())
                         .into(messageViewHolder.imageView_profile);
