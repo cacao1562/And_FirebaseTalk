@@ -10,8 +10,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.RequestOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
@@ -20,6 +24,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.talk.hwanungyu.and_firebasetalk.R;
 import com.talk.hwanungyu.and_firebasetalk.model.ChatModel;
+import com.talk.hwanungyu.and_firebasetalk.model.UserModel;
 
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
@@ -103,9 +108,26 @@ public class MessageActivity extends AppCompatActivity {
     class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
         List<ChatModel.Comment> comments;
+        UserModel userModel;
 
         public RecyclerViewAdapter() { //ctrl + enter key
             comments = new ArrayList<>();
+            FirebaseDatabase.getInstance().getReference().child("users").child(destinationUid).addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    userModel = dataSnapshot.getValue(UserModel.class);
+                    getMessageList();
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+
+                }
+            });
+        }
+
+        void getMessageList() {
+
             FirebaseDatabase.getInstance().getReference().child("chatrooms").child(chatRoomUid).child("comments").addValueEventListener(new ValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
@@ -134,7 +156,25 @@ public class MessageActivity extends AppCompatActivity {
         @Override
         public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
 
-            ((MessageViewHolder)holder).textView_message.setText(comments.get(position).message);
+            MessageViewHolder messageViewHolder = ((MessageViewHolder)holder);
+                                          // 내 uid
+            if(comments.get(position).uid.equals(uid)) {
+                messageViewHolder.textView_message.setText(comments.get(position).message);
+                messageViewHolder.textView_message.setBackgroundResource(R.drawable.rightbubble);
+                messageViewHolder.linearLayout_destination.setVisibility(View.INVISIBLE); //감추기
+                messageViewHolder.textView_message.setTextSize(25);
+            } else {
+                Glide.with(holder.itemView.getContext())
+                        .load(userModel.profileImageUrl)
+                        .apply(new RequestOptions().circleCrop())
+                        .into(messageViewHolder.imageView_profile);
+                messageViewHolder.textView_name.setText(userModel.name);
+                messageViewHolder.linearLayout_destination.setVisibility(View.VISIBLE);
+                messageViewHolder.textView_message.setBackgroundResource(R.drawable.leftbubble);
+                messageViewHolder.textView_message.setText(comments.get(position).message);
+                messageViewHolder.textView_message.setTextSize(25);
+            }
+
         }
 
         @Override
@@ -144,9 +184,18 @@ public class MessageActivity extends AppCompatActivity {
 
         private class MessageViewHolder extends RecyclerView.ViewHolder {
             public TextView textView_message;
+            public TextView textView_name;
+            public ImageView imageView_profile;
+            public LinearLayout linearLayout_destination;
+
+
             public MessageViewHolder(View view) {
                 super(view);
                 textView_message = view.findViewById(R.id.messageItem_textView_message);
+                textView_name = (TextView)view.findViewById(R.id.messageItem_textView_name);
+                imageView_profile = (ImageView)view.findViewById(R.id.messageItem_Imageview_profile);
+                linearLayout_destination = (LinearLayout)view.findViewById(R.id.messageItem_Linearlayout_destination);
+
             }
         }
     }
