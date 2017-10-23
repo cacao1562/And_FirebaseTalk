@@ -1,10 +1,12 @@
 package com.talk.hwanungyu.and_firebasetalk.chat;
 
 import android.provider.ContactsContract;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,7 +18,9 @@ import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -73,8 +77,12 @@ public class MessageActivity extends AppCompatActivity {
                     comment.uid = uid;
                     comment.message = editText.getText().toString();
 
-
-                    FirebaseDatabase.getInstance().getReference().child("chatrooms").child(chatRoomUid).child("comments").push().setValue(comment);
+                    FirebaseDatabase.getInstance().getReference().child("chatrooms").child(chatRoomUid).child("comments").push().setValue(comment).addOnCompleteListener(new OnCompleteListener<Void>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Void> task) {
+                            editText.setText("");
+                        }
+                    });
                 }
 
             }
@@ -137,6 +145,7 @@ public class MessageActivity extends AppCompatActivity {
                         comments.add(item.getValue(ChatModel.Comment.class));
                     }
                     notifyDataSetChanged(); //갱신
+                    recyclerView.scrollToPosition(comments.size() - 1); //맨 마지막으로 이동
                 }
 
                 @Override
@@ -157,12 +166,16 @@ public class MessageActivity extends AppCompatActivity {
         public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
 
             MessageViewHolder messageViewHolder = ((MessageViewHolder)holder);
-                                          // 내 uid
+
+
+            //내가보낸 메세지                    // 내 uid
             if(comments.get(position).uid.equals(uid)) {
                 messageViewHolder.textView_message.setText(comments.get(position).message);
                 messageViewHolder.textView_message.setBackgroundResource(R.drawable.rightbubble);
                 messageViewHolder.linearLayout_destination.setVisibility(View.INVISIBLE); //감추기
-                messageViewHolder.textView_message.setTextSize(25);
+                messageViewHolder.textView_message.setTextSize(15);
+                messageViewHolder.linearLayout_main.setGravity(Gravity.RIGHT);
+            //상대방이 보낸 메세
             } else {
                 Glide.with(holder.itemView.getContext()) //상대방
                         .load(userModel.profileImageUrl)
@@ -172,7 +185,8 @@ public class MessageActivity extends AppCompatActivity {
                 messageViewHolder.linearLayout_destination.setVisibility(View.VISIBLE);
                 messageViewHolder.textView_message.setBackgroundResource(R.drawable.leftbubble);
                 messageViewHolder.textView_message.setText(comments.get(position).message);
-                messageViewHolder.textView_message.setTextSize(25);
+                messageViewHolder.textView_message.setTextSize(15);
+                messageViewHolder.linearLayout_main.setGravity(Gravity.LEFT);
             }
 
         }
@@ -187,6 +201,7 @@ public class MessageActivity extends AppCompatActivity {
             public TextView textView_name;
             public ImageView imageView_profile;
             public LinearLayout linearLayout_destination;
+            public LinearLayout linearLayout_main;
 
 
             public MessageViewHolder(View view) {
@@ -195,6 +210,7 @@ public class MessageActivity extends AppCompatActivity {
                 textView_name = (TextView)view.findViewById(R.id.messageItem_textView_name);
                 imageView_profile = (ImageView)view.findViewById(R.id.messageItem_Imageview_profile);
                 linearLayout_destination = (LinearLayout)view.findViewById(R.id.messageItem_Linearlayout_destination);
+                linearLayout_main = (LinearLayout)view.findViewById(R.id.messageItem_Linearlayout_main);
 
             }
         }
