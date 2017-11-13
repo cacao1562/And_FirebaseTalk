@@ -2,6 +2,7 @@ package com.talk.hwanungyu.and_firebasetalk.model;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Created by hwanungyu on 2017. 9. 25..
@@ -17,7 +18,7 @@ public class ChatModel {
     public static class Comment {
         public String uid;
         public String message;
-
+        public Object timestamp;
 
     }
 
