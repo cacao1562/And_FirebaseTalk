@@ -1,6 +1,8 @@
 package com.talk.hwanungyu.and_firebasetalk.fragment;
 
+import android.app.ActivityOptions;
 import android.app.Fragment;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.LinearLayoutManager;
@@ -19,15 +21,17 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.talk.hwanungyu.and_firebasetalk.R;
+import com.talk.hwanungyu.and_firebasetalk.chat.MessageActivity;
 import com.talk.hwanungyu.and_firebasetalk.model.ChatModel;
 import com.talk.hwanungyu.and_firebasetalk.model.UserModel;
 
-import org.w3c.dom.Text;
-
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.TimeZone;
 import java.util.TreeMap;
 
 /**
@@ -36,6 +40,7 @@ import java.util.TreeMap;
 
 public class ChatFragment extends Fragment {
 
+    private SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy.MM.dd hh:mm");
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
@@ -51,9 +56,10 @@ public class ChatFragment extends Fragment {
 
         private List<ChatModel> chatModels = new ArrayList<>();
         private String uid;
+        private ArrayList<String> destinationUsers = new ArrayList<>();
         public ChatRecyclerViewAdapter() {
             uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
-            FirebaseDatabase.getInstance().getReference().child("chatrooms").orderByChild("users/"+uid).addListenerForSingleValueEvent(new ValueEventListener() {
+            FirebaseDatabase.getInstance().getReference().child("chatrooms").orderByChild("users/"+uid).equalTo(true).addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
                     chatModels.clear();
@@ -78,7 +84,7 @@ public class ChatFragment extends Fragment {
         }
 
         @Override
-        public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
+        public void onBindViewHolder(RecyclerView.ViewHolder holder, final int position) {
 
             final CustomViewHoler customViewHoler = (CustomViewHoler)holder;
             String destinationUid = null;
@@ -87,6 +93,7 @@ public class ChatFragment extends Fragment {
             for (String user: chatModels.get(position).users.keySet()) {
                 if (!user.equals(uid)) {
                     destinationUid = user;
+                    destinationUsers.add(destinationUid);
                 }
             }
             FirebaseDatabase.getInstance().getReference().child("users").child(destinationUid).addListenerForSingleValueEvent(new ValueEventListener() {
@@ -112,6 +119,24 @@ public class ChatFragment extends Fragment {
             commentMap.putAll(chatModels.get(position).comments);
             String lastMessageKey = (String) commentMap.keySet().toArray()[0];
             customViewHoler.textView_last_message.setText(chatModels.get(position).comments.get(lastMessageKey).message);
+
+            customViewHoler.itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = new Intent(getView().getContext(), MessageActivity.class);
+                    intent.putExtra("destinationUid",destinationUsers.get(position));
+                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN) {
+                        ActivityOptions activityOptions = ActivityOptions.makeCustomAnimation(getView().getContext(),R.anim.fromright,R.anim.toleft);
+                        startActivity(intent,activityOptions.toBundle());
+                    }
+                }
+            });
+
+            //TimeStamp
+            simpleDateFormat.setTimeZone(TimeZone.getTimeZone("Asia/Seoul"));
+            long unixTime = (long) chatModels.get(position).comments.get(lastMessageKey).timestamp;
+            Date date = new Date(unixTime);
+            customViewHoler.textView_timestamp.setText(simpleDateFormat.format(date));
         }
 
         @Override
@@ -123,12 +148,16 @@ public class ChatFragment extends Fragment {
             public ImageView imageView;
             public TextView textView_title;
             public TextView textView_last_message;
+            public TextView textView_timestamp;
+
             public CustomViewHoler(View view) {
 
                 super(view);
                 imageView = view.findViewById(R.id.chatitem_imageview);
                 textView_title = view.findViewById(R.id.chatitem_textview_title);
                 textView_last_message = view.findViewById(R.id.chatitem_textview_lastMessage);
+                textView_timestamp = view.findViewById(R.id.chatitem_textview_timestamp);
+
             }
         }
     }

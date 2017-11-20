@@ -1,9 +1,8 @@
 package com.talk.hwanungyu.and_firebasetalk.chat;
 
-import android.provider.ContactsContract;
+import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.Gravity;
@@ -31,7 +30,6 @@ import com.talk.hwanungyu.and_firebasetalk.R;
 import com.talk.hwanungyu.and_firebasetalk.model.ChatModel;
 import com.talk.hwanungyu.and_firebasetalk.model.UserModel;
 
-import java.lang.reflect.Constructor;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -224,4 +222,10 @@ public class MessageActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    public void onBackPressed() {
+       // super.onBackPressed();
+        finish();
+        overridePendingTransition(R.anim.fromleft,R.anim.toright); //finish 다음에 있어야 작동됨
+    }
 }
