@@ -26,15 +26,26 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ServerValue;
 import com.google.firebase.database.ValueEventListener;
+import com.google.gson.Gson;
 import com.talk.hwanungyu.and_firebasetalk.R;
 import com.talk.hwanungyu.and_firebasetalk.model.ChatModel;
+import com.talk.hwanungyu.and_firebasetalk.model.NotificationModel;
 import com.talk.hwanungyu.and_firebasetalk.model.UserModel;
 
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
+
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 public class MessageActivity extends AppCompatActivity {
 
@@ -47,6 +58,8 @@ public class MessageActivity extends AppCompatActivity {
 
     private RecyclerView recyclerView;
     private SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy.MM.dd HH:mm");
+
+    private UserModel destinationUserModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -82,6 +95,7 @@ public class MessageActivity extends AppCompatActivity {
                     FirebaseDatabase.getInstance().getReference().child("chatrooms").child(chatRoomUid).child("comments").push().setValue(comment).addOnCompleteListener(new OnCompleteListener<Void>() {
                         @Override
                         public void onComplete(@NonNull Task<Void> task) {
+                            sendGcm();
                             editText.setText("");
                         }
                     });
@@ -91,6 +105,37 @@ public class MessageActivity extends AppCompatActivity {
         });
 
         checkChatRoom();
+    }
+
+    void sendGcm() {
+        Gson gson = new Gson();
+        NotificationModel notificationModel = new NotificationModel();
+        notificationModel.to = destinationUserModel.pushToken;
+        notificationModel.notification.title = "보낸이 아이디";
+        notificationModel.notification.text = editText.getText().toString();
+
+        RequestBody requestBody = RequestBody.create(MediaType.parse("application/json; charset=utf8"),gson.toJson(notificationModel));
+        Request request = new Request.Builder()
+                .header("Content-Type","application/json")
+                .addHeader("Authorization", "key=AIzaSyDDd8qaqXDF2hnnxN_mWXCUh9jK7wij_cw")
+                .url("https://gcm-http.googleapis.com/gcm/send")
+                .post(requestBody)
+                .build();
+
+        OkHttpClient okHttpClient = new OkHttpClient();
+        okHttpClient.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+
+            }
+        });
+
+
     }
 
     void checkChatRoom() {
@@ -118,14 +163,14 @@ public class MessageActivity extends AppCompatActivity {
     class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
         List<ChatModel.Comment> comments;
-        UserModel userModel;
+
 
         public RecyclerViewAdapter() { //ctrl + enter key
             comments = new ArrayList<>();
             FirebaseDatabase.getInstance().getReference().child("users").child(destinationUid).addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
-                    userModel = dataSnapshot.getValue(UserModel.class);
+                    destinationUserModel = dataSnapshot.getValue(UserModel.class);
                     getMessageList();
                 }
 
@@ -180,10 +225,10 @@ public class MessageActivity extends AppCompatActivity {
             //상대방이 보낸 메세
             } else {
                 Glide.with(holder.itemView.getContext()) //상대방
-                        .load(userModel.profileImageUrl)
+                        .load(destinationUserModel.profileImageUrl)
                         .apply(new RequestOptions().circleCrop())
                         .into(messageViewHolder.imageView_profile);
-                messageViewHolder.textView_name.setText(userModel.name);
+                messageViewHolder.textView_name.setText(destinationUserModel.name);
                 messageViewHolder.linearLayout_destination.setVisibility(View.VISIBLE);
                 messageViewHolder.textView_message.setBackgroundResource(R.drawable.leftbubble);
                 messageViewHolder.textView_message.setText(comments.get(position).message);
