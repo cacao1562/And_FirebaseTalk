@@ -3,7 +3,6 @@ package com.talk.hwanungyu.and_firebasetalk.fragment;
 import android.app.ActivityOptions;
 import android.app.Fragment;
 import android.content.Intent;
-import android.media.Image;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.LinearLayoutManager;
@@ -109,6 +108,10 @@ public class Peoplefragment extends Fragment {
 
                 }
             });
+            if (userModels.get(position).comment != null ) {
+                ((CustomViewHolder) holder).textView_comment.setText(userModels.get(position).comment);
+            }
+
 
         }
 
@@ -119,12 +122,15 @@ public class Peoplefragment extends Fragment {
 
         private class CustomViewHolder extends RecyclerView.ViewHolder {
 
-            ImageView imageview;
-            TextView textview;
+            public ImageView imageview;
+            public TextView textview;
+            public TextView textView_comment;
+
             public CustomViewHolder(View view) {
                 super(view);
                 imageview = (ImageView) view.findViewById(R.id.frienditem_imageView);
                 textview = (TextView) view.findViewById(R.id.frienditem_textView);
+                textView_comment = view.findViewById(R.id.frienditem_textView_comment);
             }
         }
 
