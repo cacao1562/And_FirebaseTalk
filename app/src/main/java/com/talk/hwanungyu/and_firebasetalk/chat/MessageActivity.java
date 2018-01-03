@@ -23,6 +23,7 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ServerValue;
 import com.google.firebase.database.ValueEventListener;
@@ -36,7 +37,9 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.TimeZone;
 
 import okhttp3.Call;
@@ -60,6 +63,10 @@ public class MessageActivity extends AppCompatActivity {
     private SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy.MM.dd HH:mm");
 
     private UserModel destinationUserModel;
+
+    private DatabaseReference databaseReference;
+    private ValueEventListener valueEventListener;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -186,17 +193,31 @@ public class MessageActivity extends AppCompatActivity {
         }
 
         void getMessageList() {
-
-            FirebaseDatabase.getInstance().getReference().child("chatrooms").child(chatRoomUid).child("comments").addValueEventListener(new ValueEventListener() {
+            databaseReference = FirebaseDatabase.getInstance().getReference().child("chatrooms").child(chatRoomUid).child("comments");
+            valueEventListener = databaseReference.addValueEventListener(new ValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
                     comments.clear();
+                    Map<String,Object> readUsersMap = new HashMap<>();
 
                     for (DataSnapshot item : dataSnapshot.getChildren()) {
-                        comments.add(item.getValue(ChatModel.Comment.class));
+                        String key = item.getKey();
+                        ChatModel.Comment comment = item.getValue(ChatModel.Comment.class);
+                        comment.readUsers.put(uid, true);
+
+                        readUsersMap.put(key,comment);
+                        comments.add(comment);
                     }
-                    notifyDataSetChanged(); //갱신
-                    recyclerView.scrollToPosition(comments.size() - 1); //맨 마지막으로 이동
+
+                    FirebaseDatabase.getInstance().getReference().child("chatrooms").child(chatRoomUid).child("comments")
+                            .updateChildren(readUsersMap).addOnCompleteListener(new OnCompleteListener<Void>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Void> task) {
+                            notifyDataSetChanged(); //갱신
+                            recyclerView.scrollToPosition(comments.size() - 1); //맨 마지막으로 이동
+                        }
+                    });
+
                 }
 
                 @Override
@@ -274,6 +295,7 @@ public class MessageActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
        // super.onBackPressed();
+        databaseReference.removeEventListener(valueEventListener);
         finish();
         overridePendingTransition(R.anim.fromleft,R.anim.toright); //finish 다음에 있어야 작동됨
     }
