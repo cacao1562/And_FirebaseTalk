@@ -247,6 +247,8 @@ public class MessageActivity extends AppCompatActivity {
                 messageViewHolder.linearLayout_destination.setVisibility(View.INVISIBLE); //감추기
                 messageViewHolder.textView_message.setTextSize(15);
                 messageViewHolder.linearLayout_main.setGravity(Gravity.RIGHT);
+                setReadCounter(position, messageViewHolder.textView_readCounter_left);
+
             //상대방이 보낸 메세
             } else {
                 Glide.with(holder.itemView.getContext()) //상대방
@@ -259,6 +261,7 @@ public class MessageActivity extends AppCompatActivity {
                 messageViewHolder.textView_message.setText(comments.get(position).message);
                 messageViewHolder.textView_message.setTextSize(15);
                 messageViewHolder.linearLayout_main.setGravity(Gravity.LEFT);
+                setReadCounter(position, messageViewHolder.textView_readCounter_right);
             }
             long unixTime = (long) comments.get(position).timestamp;
             Date date = new Date(unixTime);
@@ -266,6 +269,28 @@ public class MessageActivity extends AppCompatActivity {
             String time = simpleDateFormat.format(date);
             messageViewHolder.textView_timestamp.setText(time);
         }
+
+        void setReadCounter(final int position, final TextView textView) {
+            FirebaseDatabase.getInstance().getReference().child("chatrooms").child(chatRoomUid).child("users").addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    Map<String, Boolean> users = (Map<String, Boolean>) dataSnapshot.getValue();
+                    int count = users.size() - comments.get(position).readUsers.size();
+                    if (count > 0) {
+                        textView.setVisibility(View.VISIBLE);
+                        textView.setText(String.valueOf(count));
+                    } else {
+                        textView.setVisibility(View.INVISIBLE); //숨기기
+                    }
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+
+                }
+            });
+        }
+
 
         @Override
         public int getItemCount() {
@@ -279,6 +304,8 @@ public class MessageActivity extends AppCompatActivity {
             public LinearLayout linearLayout_destination;
             public LinearLayout linearLayout_main;
             public TextView textView_timestamp;
+            public TextView textView_readCounter_left;
+            public TextView textView_readCounter_right;
 
             public MessageViewHolder(View view) {
                 super(view);
@@ -288,6 +315,8 @@ public class MessageActivity extends AppCompatActivity {
                 linearLayout_destination = (LinearLayout)view.findViewById(R.id.messageItem_Linearlayout_destination);
                 linearLayout_main = (LinearLayout)view.findViewById(R.id.messageItem_Linearlayout_main);
                 textView_timestamp = view.findViewById(R.id.messageItem_textView_timeStamp);
+                textView_readCounter_left = view.findViewById(R.id.messageItem_textView_readCounter_left);
+                textView_readCounter_right = view.findViewById(R.id.messageItem_textView_readCounter_right);
             }
         }
     }
