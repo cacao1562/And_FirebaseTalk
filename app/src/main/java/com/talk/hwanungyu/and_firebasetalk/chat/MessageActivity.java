@@ -66,6 +66,7 @@ public class MessageActivity extends AppCompatActivity {
 
     private DatabaseReference databaseReference;
     private ValueEventListener valueEventListener;
+    int peopleCount = 0;
 
 
     @Override
@@ -202,21 +203,27 @@ public class MessageActivity extends AppCompatActivity {
 
                     for (DataSnapshot item : dataSnapshot.getChildren()) {
                         String key = item.getKey();
-                        ChatModel.Comment comment = item.getValue(ChatModel.Comment.class);
-                        comment.readUsers.put(uid, true);
+                        ChatModel.Comment comment_origin = item.getValue(ChatModel.Comment.class);
+                        ChatModel.Comment comment_motify = item.getValue(ChatModel.Comment.class);
+                        comment_motify.readUsers.put(uid, true);
 
-                        readUsersMap.put(key,comment);
-                        comments.add(comment);
+                        readUsersMap.put(key,comment_motify);
+                        comments.add(comment_origin);
                     }
 
-                    FirebaseDatabase.getInstance().getReference().child("chatrooms").child(chatRoomUid).child("comments")
-                            .updateChildren(readUsersMap).addOnCompleteListener(new OnCompleteListener<Void>() {
-                        @Override
-                        public void onComplete(@NonNull Task<Void> task) {
-                            notifyDataSetChanged(); //갱신
-                            recyclerView.scrollToPosition(comments.size() - 1); //맨 마지막으로 이동
-                        }
-                    });
+                    if (!comments.get(comments.size() - 1).readUsers.containsKey(uid)) { //내가 없을경
+                        FirebaseDatabase.getInstance().getReference().child("chatrooms").child(chatRoomUid).child("comments")
+                                .updateChildren(readUsersMap).addOnCompleteListener(new OnCompleteListener<Void>() {
+                            @Override
+                            public void onComplete(@NonNull Task<Void> task) {
+                                notifyDataSetChanged(); //갱신
+                                recyclerView.scrollToPosition(comments.size() - 1); //맨 마지막으로 이동
+                            }
+                        });
+                    }else {
+                        notifyDataSetChanged(); //갱신
+                        recyclerView.scrollToPosition(comments.size() - 1); //맨 마지막으로 이동
+                    }
 
                 }
 
@@ -271,11 +278,15 @@ public class MessageActivity extends AppCompatActivity {
         }
 
         void setReadCounter(final int position, final TextView textView) {
+            if (peopleCount == 0) {
+
+
             FirebaseDatabase.getInstance().getReference().child("chatrooms").child(chatRoomUid).child("users").addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
                     Map<String, Boolean> users = (Map<String, Boolean>) dataSnapshot.getValue();
-                    int count = users.size() - comments.get(position).readUsers.size();
+                    peopleCount = users.size();
+                    int count = peopleCount - comments.get(position).readUsers.size();
                     if (count > 0) {
                         textView.setVisibility(View.VISIBLE);
                         textView.setText(String.valueOf(count));
@@ -289,6 +300,16 @@ public class MessageActivity extends AppCompatActivity {
 
                 }
             });
+          }else {
+                int count = peopleCount - comments.get(position).readUsers.size();
+                if (count > 0) {
+                    textView.setVisibility(View.VISIBLE);
+                    textView.setText(String.valueOf(count));
+                } else {
+                    textView.setVisibility(View.INVISIBLE); //숨기기
+                }
+            }
+
         }
 
 
