@@ -1,16 +1,15 @@
 package com.talk.hwanungyu.and_firebasetalk.fragment;
 
 import android.app.ActivityOptions;
-import android.app.Fragment;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
-import android.support.design.widget.FloatingActionButton;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -28,37 +27,23 @@ import com.talk.hwanungyu.and_firebasetalk.model.UserModel;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Created by hwanungyu on 2017. 9. 22..
- */
+public class SelectFriendActivity extends AppCompatActivity {
 
-public class Peoplefragment extends Fragment {
-
-    @Nullable
     @Override
-    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_select_friend);
 
-        View view = inflater.inflate(R.layout.fragment_people,container,false);
-        RecyclerView recyclerView = (RecyclerView)view.findViewById(R.id.peoplefragment_recyclerView);
-        recyclerView.setLayoutManager(new LinearLayoutManager(inflater.getContext()));
-        recyclerView.setAdapter(new PeopleFragmentRecyclerViewAdapter());
-
-        FloatingActionButton floatingActionButton = view.findViewById(R.id.peoplefragment_floatingButton);
-        floatingActionButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startActivity(new Intent(v.getContext(), SelectFriendActivity.class));
-            }
-        });
-
-        return view;
+        RecyclerView recyclerView = (RecyclerView) findViewById(R.id.selectFriendActivity_recyclerView);
+        recyclerView.setAdapter(new SelectFriendRecyclerViewAdapter());
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
     }
 
-    class PeopleFragmentRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+    class SelectFriendRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
         List<UserModel> userModels;
 
-        public PeopleFragmentRecyclerViewAdapter() {
+        public SelectFriendRecyclerViewAdapter() {
             userModels = new ArrayList<>();
             final String myUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
             FirebaseDatabase.getInstance().getReference().child("users").addValueEventListener(new ValueEventListener() {
@@ -86,7 +71,7 @@ public class Peoplefragment extends Fragment {
 
         @Override
         public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_friend,parent,false);
+            View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_friend_select,parent,false);
 
 
             return new CustomViewHolder(view);
@@ -133,16 +118,16 @@ public class Peoplefragment extends Fragment {
             public ImageView imageview;
             public TextView textview;
             public TextView textView_comment;
+            public CheckBox checkBox;
 
             public CustomViewHolder(View view) {
                 super(view);
                 imageview = (ImageView) view.findViewById(R.id.frienditem_imageView);
                 textview = (TextView) view.findViewById(R.id.frienditem_textView);
                 textView_comment = view.findViewById(R.id.frienditem_textView_comment);
+                checkBox = view.findViewById(R.id.frienditem_checkBox);
             }
         }
 
     }
-
-
 }
