@@ -21,6 +21,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.talk.hwanungyu.and_firebasetalk.R;
+import com.talk.hwanungyu.and_firebasetalk.chat.GroupMessageActivity;
 import com.talk.hwanungyu.and_firebasetalk.chat.MessageActivity;
 import com.talk.hwanungyu.and_firebasetalk.model.ChatModel;
 import com.talk.hwanungyu.and_firebasetalk.model.UserModel;
@@ -117,26 +118,41 @@ public class ChatFragment extends Fragment {
             //메세지를 내림차순으로 정렬 후 마지막 메세지의 키값을 가져옴
             Map<String,ChatModel.Comment> commentMap = new TreeMap<>(Collections.reverseOrder());
             commentMap.putAll(chatModels.get(position).comments);
-            String lastMessageKey = (String) commentMap.keySet().toArray()[0];
-            customViewHoler.textView_last_message.setText(chatModels.get(position).comments.get(lastMessageKey).message);
+            if (commentMap.keySet().toArray().length > 0) {
+                String lastMessageKey = (String) commentMap.keySet().toArray()[0];
+
+                customViewHoler.textView_last_message.setText(chatModels.get(position).comments.get(lastMessageKey).message);
+
+
+
+                //TimeStamp
+                simpleDateFormat.setTimeZone(TimeZone.getTimeZone("Asia/Seoul"));
+                long unixTime = (long) chatModels.get(position).comments.get(lastMessageKey).timestamp;
+                Date date = new Date(unixTime);
+                customViewHoler.textView_timestamp.setText(simpleDateFormat.format(date));
+
+            }
 
             customViewHoler.itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Intent intent = new Intent(getView().getContext(), MessageActivity.class);
-                    intent.putExtra("destinationUid",destinationUsers.get(position));
+                    Intent intent = null;
+                    if(chatModels.get(position).users.size() > 2 ) {
+                        intent = new Intent(getView().getContext(), GroupMessageActivity.class);
+                    }else {
+
+                        intent = new Intent(getView().getContext(), MessageActivity.class);
+                        intent.putExtra("destinationUid", destinationUsers.get(position));
+                    }
+
                     if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN) {
-                        ActivityOptions activityOptions = ActivityOptions.makeCustomAnimation(getView().getContext(),R.anim.fromright,R.anim.toleft);
-                        startActivity(intent,activityOptions.toBundle());
+                        ActivityOptions activityOptions = ActivityOptions.makeCustomAnimation(getView().getContext(), R.anim.fromright, R.anim.toleft);
+                        startActivity(intent, activityOptions.toBundle());
                     }
                 }
             });
 
-            //TimeStamp
-            simpleDateFormat.setTimeZone(TimeZone.getTimeZone("Asia/Seoul"));
-            long unixTime = (long) chatModels.get(position).comments.get(lastMessageKey).timestamp;
-            Date date = new Date(unixTime);
-            customViewHoler.textView_timestamp.setText(simpleDateFormat.format(date));
+
         }
 
         @Override
